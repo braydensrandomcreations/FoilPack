@@ -22,10 +22,6 @@ FoilPack turns an HTML page into one self-contained `.svg` file that still works
    - *Size*: fill the window (recommended) or a fixed size.
 3. **Convert**, then **download the `.svg`** or hit **preview**.
 
-## Running it
-
-FoilPack is a single static HTML page with no build step and no dependencies. Open it in any modern browser, or host it anywhere static files are served, such as GitHub Pages.
-
 ## How it works
 
 A web page can't become vector shapes and stay interactive, so the SVG hosts your original page, byte for byte, inside itself using a `foreignObject` containing an `iframe`. That keeps the layout, code, fonts, and behavior identical to the HTML file.
@@ -37,7 +33,3 @@ A web page can't become vector shapes and stay interactive, so the SVG hosts you
 - **Add `<!DOCTYPE html>`** as the first line of your page. Inside an SVG, browsers always use standards mode, so pages without it can shift slightly.
 - **Previews are sandboxed**, so a few things (like saved settings) can behave differently there. Download the file and open it in a browser for the real thing.
 - **Very large outputs** (over about 25 MB) may be slow to open in some browsers.
-
-## License
-
-Add your license here.
