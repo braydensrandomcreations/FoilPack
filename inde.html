@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FoilPack — wrap any web page in an SVG</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20viewBox%3D%220%200%2064%2064%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cdefs%3E%3CclipPath%20id%3D%22c%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2217%22/%3E%3C/clipPath%3E%3ClinearGradient%20id%3D%22a%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%239be7ff%22/%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%231a9af0%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230a3566%22/%3E%3C/linearGradient%3E%3ClinearGradient%20id%3D%22b%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%235fc8ff%22/%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230d6fc4%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2217%22%20fill%3D%22url%28%23a%29%22/%3E%3Cpath%20d%3D%22M0%200h64v26C44%2020%2020%2012%200%2022z%22%20fill%3D%22%23fff%22%20opacity%3D%22.16%22%20clip-path%3D%22url%28%23c%29%22/%3E%3Cpath%20d%3D%22M21%2013h15l11%2011v26a4%204%200%200%201-4%204H21a4%204%200%200%201-4-4V17a4%204%200%200%201%204-4z%22%20fill%3D%22%23fff%22/%3E%3Cpath%20d%3D%22M36%2013v7a4%204%200%200%200%204%204h7z%22%20fill%3D%22%23bfe6ff%22/%3E%3Cpath%20d%3D%22M17%2047l30-17v20a4%204%200%200%201-4%204H21a4%204%200%200%201-4-4z%22%20fill%3D%22url%28%23b%29%22/%3E%3Cpath%20d%3D%22M17%2047l30-17%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.6%22%20stroke-linecap%3D%22round%22%20opacity%3D%22.7%22/%3E%3C/svg%3E">
+<style>
+  :root{
+    --cyan:#1a9af0; --cyan-deep:#0d6fc4; --cyan-dark:#0a3566; --aqua:#6fd0ff; --mint:#bee4ff;
+    --sky:#e9f6ff; --ink:#0a2a4d; --line:rgba(8,40,74,.14);
+  }
+  *{ box-sizing:border-box; }
+  html{ background:#062a55; }
+  body{
+    margin:0; min-height:100vh; color:var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:
+      radial-gradient(900px 500px at 12% -5%, rgba(111,208,255,.55), transparent 60%),
+      radial-gradient(800px 500px at 100% 10%, rgba(190,228,255,.28), transparent 55%),
+      linear-gradient(180deg, #38b6ff 0%, #1a9af0 38%, #0d6fc4 75%, #0a3566 100%);
+    background-attachment:fixed;
+  }
+  main{ max-width:760px; margin:0 auto; padding:26px 16px 44px; }
+  h1{
+    margin:0; color:#fff; font-size:clamp(30px,6vw,42px); letter-spacing:-1.5px; font-weight:900;
+    text-shadow:0 4px 22px rgba(5,30,64,.35);
+  }
+  .sub{ color:rgba(255,255,255,.92); margin:6px 0 18px; font-weight:600; line-height:1.45; font-size:14px; max-width:620px; }
+  .card{
+    background:rgba(255,255,255,.88); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.7); border-radius:18px; padding:14px 18px; margin-bottom:11px;
+    box-shadow:0 18px 44px rgba(5,30,64,.26), 0 2px 0 rgba(255,255,255,.6) inset;
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .card:hover{ transform:translateY(-2px); box-shadow:0 24px 52px rgba(5,30,64,.32), 0 2px 0 rgba(255,255,255,.6) inset; }
+  .card h2{ margin:0 0 9px; font-size:15px; display:flex; align-items:center; letter-spacing:-.2px; }
+  .num{
+    display:inline-grid; place-items:center; width:23px; height:23px; border-radius:50%;
+    background:linear-gradient(135deg, var(--aqua), var(--cyan-deep)); color:#031f3d; font-size:12px; font-weight:900;
+    margin-right:8px; flex-shrink:0; box-shadow:0 4px 12px rgba(26,154,240,.5);
+  }
+  .drop{
+    border:2.5px dashed rgba(13,111,196,.5); border-radius:14px; padding:16px 12px; text-align:center; font-weight:700;
+    background:linear-gradient(180deg, rgba(233,246,255,.9), rgba(190,228,255,.45)); transition:.18s;
+  }
+  .drop.over{ border-color:var(--cyan); background:#fff; transform:scale(1.015); box-shadow:0 0 0 6px rgba(26,154,240,.2); }
+  .drop small{ display:block; font-weight:600; opacity:.65; margin-top:6px; line-height:1.4; }
+  .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:8px; }
+  button, select, input[type=number], textarea{ font:inherit; }
+  .btn{
+    border:none; border-radius:11px; padding:8px 14px; font-size:14px; font-weight:800; cursor:pointer;
+    background:rgba(13,111,196,.12); color:var(--cyan-dark); transition:background .15s, transform .1s, box-shadow .15s;
+  }
+  .btn:hover{ background:rgba(13,111,196,.22); }
+  .btn:active{ transform:translateY(1px); }
+  .btn.primary{
+    background:linear-gradient(135deg, #3aa8ff, var(--cyan-deep)); color:#fff;
+    box-shadow:0 8px 20px rgba(13,111,196,.4);
+  }
+  .btn.primary:hover{ background:linear-gradient(135deg, #5bb8ff, #1a82dc); box-shadow:0 10px 26px rgba(13,111,196,.5); }
+  .btn:disabled{ opacity:.4; cursor:not-allowed; box-shadow:none; }
+  .files{ font-size:13.5px; font-weight:600; line-height:1.5; }
+  .files b{ font-weight:800; }
+  select, input[type=number]{ padding:9px 11px; border-radius:11px; border:1.5px solid var(--line); background:#fff; color:var(--ink); }
+  select:focus, input[type=number]:focus, textarea:focus{ outline:none; border-color:var(--cyan); box-shadow:0 0 0 4px rgba(26,154,240,.2); }
+  input[type=number]{ width:90px; }
+  select{
+    -webkit-appearance:none; appearance:none; cursor:pointer; font-weight:700; max-width:100%;
+    padding:7px 34px 7px 11px; border-radius:11px; font-size:14px; border:1.5px solid rgba(13,111,196,.28);
+    background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5 7.5l5 5 5-5' fill='none' stroke='%230d6fc4' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 10px center/15px;
+    box-shadow:0 3px 10px rgba(5,30,64,.08); transition:border-color .15s, box-shadow .15s, transform .1s;
+  }
+  select:hover{ border-color:var(--cyan); box-shadow:0 5px 14px rgba(26,154,240,.2); }
+  select:active{ transform:scale(.99); }
+  select option{ font-weight:600; color:var(--ink); background:#fff; padding:8px; }
+  input[type=number]{ font-weight:700; border-color:rgba(13,111,196,.28); box-shadow:0 3px 10px rgba(5,30,64,.08); }
+  label.opt{
+    display:flex; gap:11px; align-items:center; margin:6px 0; padding:9px 12px; font-size:14px; font-weight:600; line-height:1.4; cursor:pointer;
+    border:1.5px solid var(--line); border-radius:13px; background:rgba(255,255,255,.6);
+    transition:border-color .15s, background .15s, box-shadow .15s, transform .1s;
+  }
+  label.opt:hover{ border-color:rgba(26,154,240,.5); background:#fff; }
+  label.opt:active{ transform:scale(.995); }
+  label.opt:has(input:checked){ border-color:var(--cyan); background:linear-gradient(180deg,#fff,rgba(190,228,255,.45)); box-shadow:0 6px 18px rgba(26,154,240,.18); }
+  label.opt input{
+    -webkit-appearance:none; appearance:none; flex-shrink:0; margin:0;
+    width:20px; height:20px; border-radius:7px; border:2px solid rgba(13,111,196,.35); background:#fff;
+    display:grid; place-content:center; cursor:pointer;
+    transition:background .15s, border-color .15s, box-shadow .15s, transform .15s;
+  }
+  label.opt input:hover{ border-color:var(--cyan); }
+  label.opt input:checked{
+    border-color:transparent; background:linear-gradient(135deg, #3aa8ff, var(--cyan-deep));
+    box-shadow:0 4px 12px rgba(26,154,240,.45);
+  }
+  label.opt input::after{
+    content:""; width:13px; height:13px; transform:scale(0); transition:transform .18s cubic-bezier(.3,1.6,.5,1);
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4.5 10.5l3.6 3.6L15.5 6.6' fill='none' stroke='white' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
+  label.opt input:checked::after{ transform:scale(1); }
+  label.opt input:focus-visible{ outline:none; box-shadow:0 0 0 4px rgba(26,154,240,.3); }
+  label.opt small{ display:block; opacity:.65; font-weight:600; }
+  details summary{ cursor:pointer; font-weight:700; color:var(--cyan-dark); }
+  textarea{ width:100%; height:96px; margin-top:10px; border-radius:13px; border:1.5px solid var(--line); padding:11px; font-family:ui-monospace, Menlo, Consolas, monospace; font-size:12px; resize:vertical; }
+  .report{ margin:12px 0 0; padding:0; list-style:none; font-size:13px; font-weight:600; max-height:190px; overflow:auto; }
+  .report li{ padding:4px 0; border-bottom:1px solid rgba(8,40,74,.08); word-break:break-word; }
+  .report li::before{ margin-right:8px; font-weight:800; }
+  .report .ok::before{ content:"✓"; color:#12a05f; }
+  .report .warn::before{ content:"!"; color:#d98600; }
+  .report .bad::before{ content:"✕"; color:#d6334a; }
+  .report .info::before{ content:"•"; color:rgba(8,40,74,.5); }
+  .summary{ font-weight:800; margin-top:12px; color:var(--cyan-dark); }
+  #preview{ width:100%; height:360px; border:2px solid rgba(13,111,196,.25); border-radius:16px; background:#fff; }
+  .note{ font-size:13px; line-height:1.55; font-weight:600; opacity:.85; }
+  .note code{ background:rgba(13,111,196,.12); padding:1px 6px; border-radius:6px; }
+  .logo{ display:flex; align-items:center; gap:11px; }
+  .logo svg{ width:1.2em; height:1.2em; flex-shrink:0; filter:drop-shadow(0 8px 16px rgba(5,30,64,.45)); transition:transform .3s ease; }
+  .logo:hover svg{ transform:rotate(-6deg) scale(1.06); }
+  .logo em{ font-style:normal; font-weight:500; color:#c9f1ff; letter-spacing:-1.5px; }
+  [hidden]{ display:none !important; }
+</style>
+</head>
+<body>
+<main>
+  <h1 class="logo" aria-label="FoilPack">
+    <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <clipPath id="lgc"><rect width="64" height="64" rx="17"/></clipPath>
+        <linearGradient id="lga" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9be7ff"/><stop offset=".5" stop-color="#1a9af0"/><stop offset="1" stop-color="#0a3566"/></linearGradient>
+        <linearGradient id="lgb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5fc8ff"/><stop offset="1" stop-color="#0d6fc4"/></linearGradient>
+      </defs>
+      <rect width="64" height="64" rx="17" fill="url(#lga)"/>
+      <path d="M0 0h64v26C44 20 20 12 0 22z" fill="#fff" opacity=".16" clip-path="url(#lgc)"/>
+      <path d="M21 13h15l11 11v26a4 4 0 0 1-4 4H21a4 4 0 0 1-4-4V17a4 4 0 0 1 4-4z" fill="#fff"/>
+      <path d="M36 13v7a4 4 0 0 0 4 4h7z" fill="#bfe6ff"/>
+      <path d="M17 47l30-17v20a4 4 0 0 1-4 4H21a4 4 0 0 1-4-4z" fill="url(#lgb)"/>
+      <path d="M17 47l30-17" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".7"/>
+    </svg>
+    <span>Foil<em>Pack</em></span>
+  </h1>
+  <p class="sub">turn a web page into a single <b>.svg</b> file that still works: same layout, same code, same everything. runs in your browser; nothing is uploaded.</p>
+
+  <section class="card">
+    <h2><span class="num">1</span>add your page</h2>
+    <div class="drop" id="drop">
+      drop your <b>.html</b> file here
+      <small>also drop the css, scripts, images and fonts it uses (or the whole folder) so they get packed in too</small>
+      <div class="row" style="justify-content:center;">
+        <button class="btn" id="btnFiles" type="button">choose files</button>
+        <button class="btn" id="btnFolder" type="button">choose a folder</button>
+      </div>
+    </div>
+    <input type="file" id="pickFiles" multiple hidden>
+    <input type="file" id="pickFolder" webkitdirectory multiple hidden>
+    <div class="files" id="fileInfo" hidden></div>
+    <div class="row" id="mainRow" hidden>
+      <label for="mainSel"><b>main page:</b></label>
+      <select id="mainSel"></select>
+    </div>
+    <details style="margin-top:14px;">
+      <summary>or paste html instead</summary>
+      <textarea id="paste" placeholder="&lt;!DOCTYPE html&gt; ..." spellcheck="false"></textarea>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">2</span>options</h2>
+    <label class="opt"><input type="checkbox" id="optLocal" checked>
+      <span>pack in the files you dropped<small>stylesheets, scripts, images, icons, fonts, audio and video that the page points to</small></span></label>
+    <label class="opt"><input type="checkbox" id="optRemote" checked>
+      <span>also download and pack in online files<small>google fonts, cdn scripts, online images. needs internet, and only works when the other site allows it; anything blocked stays a normal link</small></span></label>
+    <div class="row">
+      <label for="optFit"><b>size:</b></label>
+      <select id="optFit">
+        <option value="fill">fill the whole window (recommended)</option>
+        <option value="fixed">fixed size</option>
+      </select>
+      <span id="fixedBox" hidden>
+        <input type="number" id="optW" value="1280" min="100"> ×
+        <input type="number" id="optH" value="720" min="100">
+      </span>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">3</span>convert</h2>
+    <div class="row" style="margin-top:0;">
+      <button class="btn primary" id="btnConvert" type="button" disabled>convert to svg</button>
+      <button class="btn" id="btnDownload" type="button" disabled>download .svg</button>
+      <button class="btn" id="btnPreview" type="button" disabled>preview</button>
+    </div>
+    <div class="summary" id="summary" hidden></div>
+    <ul class="report" id="report"></ul>
+  </section>
+
+  <section class="card" id="previewCard" hidden>
+    <h2>preview</h2>
+    <iframe id="preview" sandbox="allow-scripts allow-forms allow-popups allow-modals allow-pointer-lock allow-downloads allow-presentation"></iframe>
+    <p class="note">the preview is sandboxed, so a few things (like saved settings) can behave differently here. download the file and open it in your browser for the real thing.</p>
+  </section>
+
+  <section class="card">
+    <h2>good to know</h2>
+    <p class="note">
+      A web page can't turn into vector shapes and still stay interactive, so the svg <b>hosts your original page, byte for byte,</b> inside itself. That keeps the layout, the code, the fonts and the behaviour exactly the same as the html file.<br><br>
+      <b>Open the .svg directly</b> in a browser (or host it, for example on GitHub Pages). Where an svg is only shown as a picture, like an <code>&lt;img&gt;</code> tag, a README, or most upload sites, browsers switch scripts off, so it won't be interactive there.
+    </p>
+  </section>
+</main>
+
+<script>
+(() => {
+'use strict';
+
+const $ = id => document.getElementById(id);
+
+/* ========================================================================
+   Small helpers
+   ======================================================================== */
+const MIME = {
+  css:'text/css', js:'text/javascript', mjs:'text/javascript', json:'application/json', txt:'text/plain',
+  html:'text/html', htm:'text/html', svg:'image/svg+xml', png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg',
+  gif:'image/gif', webp:'image/webp', avif:'image/avif', ico:'image/x-icon', bmp:'image/bmp', cur:'image/x-icon',
+  woff:'font/woff', woff2:'font/woff2', ttf:'font/ttf', otf:'font/otf', eot:'application/vnd.ms-fontobject',
+  mp3:'audio/mpeg', wav:'audio/wav', ogg:'audio/ogg', m4a:'audio/mp4', mp4:'video/mp4', webm:'video/webm',
+  wasm:'application/wasm'
+};
+const ext = p => { const m = /\.([a-z0-9]+)$/i.exec(p.split('#')[0].split('?')[0]); return m ? m[1].toLowerCase() : ''; };
+const dirname = p => p.includes('/') ? p.slice(0, p.lastIndexOf('/') + 1) : '';
+const kb = n => n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MB';
+
+function normPath(p){
+  const out = [];
+  for(const seg of p.split('/')){
+    if(seg === '' || seg === '.') continue;
+    if(seg === '..'){ out.pop(); continue; }
+    out.push(seg);
+  }
+  return out.join('/');
+}
+function cleanRef(ref){
+  let r = ref.split('#')[0].split('?')[0];
+  try{ r = decodeURIComponent(r); }catch(e){}
+  return r;
+}
+function classify(ref){
+  const r = (ref || '').trim();
+  if(!r || r.startsWith('#')) return 'skip';
+  if(/^(data|blob|about|javascript|mailto|tel):/i.test(r)) return 'skip';
+  if(/^(https?:)?\/\//i.test(r)) return 'remote';
+  if(/^[a-z][a-z0-9+.\-]*:/i.test(r)) return 'skip';
+  return 'local';
+}
+
+/* ---- text encoding sniff for the main page (utf-8 unless it says otherwise) ---- */
+function decodeHtml(buf){
+  const head = new TextDecoder('latin1').decode(buf.slice(0, 2048));
+  const m = /<meta[^>]+charset\s*=\s*["']?\s*([\w\-]+)/i.exec(head);
+  let label = 'utf-8';
+  if(m){ label = m[1].toLowerCase(); }
+  try{ return new TextDecoder(label).decode(buf); }
+  catch(e){ return new TextDecoder('utf-8').decode(buf); }
+}
+
+/* ========================================================================
+   State
+   ======================================================================== */
+let files = [];           // [{ path, file }]
+let lastSvg = '';
+let lastName = 'page';
+let previewUrl = '';
+let report = [];
+
+const log = (kind, msg) => report.push({ kind, msg });
+
+/* ========================================================================
+   Adding files (drop, pick, folder)
+   ======================================================================== */
+const SKIP_DIR = /(^|\/)(\.git|node_modules)(\/|$)/i;
+
+function addFile(path, file){
+  path = path.replace(/^\/+/, '');
+  if(SKIP_DIR.test(path)) return;
+  files = files.filter(f => f.path !== path);
+  files.push({ path, file });
+}
+
+function walkEntry(entry){
+  return new Promise(resolve => {
+    if(entry.isFile){
+      entry.file(f => { addFile(entry.fullPath, f); resolve(); }, () => resolve());
+    } else if(entry.isDirectory){
+      const reader = entry.createReader();
+      const all = [];
+      const readMore = () => reader.readEntries(async batch => {
+        if(!batch.length){
+          for(const e of all) await walkEntry(e);
+          resolve();
+        } else { all.push(...batch); readMore(); }
+      }, () => resolve());
+      readMore();
+    } else resolve();
+  });
+}
+
+const drop = $('drop');
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', async e => {
+  // everything from the drop has to be read right now, before anything is awaited
+  const dt = e.dataTransfer;
+  const items = dt && dt.items ? Array.from(dt.items) : [];
+  const entries = items.map(i => i.webkitGetAsEntry && i.webkitGetAsEntry()).filter(Boolean);
+  const plain = dt ? Array.from(dt.files) : [];
+  if(entries.length){
+    for(const en of entries) await walkEntry(en);
+  } else {
+    plain.forEach(f => addFile(f.name, f));
+  }
+  refreshFiles();
+});
+
+$('btnFiles').addEventListener('click', () => $('pickFiles').click());
+$('btnFolder').addEventListener('click', () => $('pickFolder').click());
+$('pickFiles').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => addFile(f.name, f));
+  e.target.value = '';
+  refreshFiles();
+});
+$('pickFolder').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(f => addFile(f.webkitRelativePath || f.name, f));
+  e.target.value = '';
+  refreshFiles();
+});
+
+const isPage = p => /\.html?$/i.test(p);
+
+function refreshFiles(){
+  const pages = files.filter(f => isPage(f.path));
+  const others = files.length - pages.length;
+  const info = $('fileInfo');
+  info.hidden = files.length === 0;
+  info.innerHTML = files.length
+    ? `<b>${pages.length}</b> page${pages.length === 1 ? '' : 's'} and <b>${others}</b> other file${others === 1 ? '' : 's'} ready`
+    : '';
+
+  const sel = $('mainSel');
+  const prev = sel.value;
+  sel.innerHTML = '';
+  // best guess for the main page: index.html, then the one closest to the top
+  const ranked = pages.slice().sort((a, b) => {
+    const ai = /(^|\/)index\.html?$/i.test(a.path) ? 0 : 1, bi = /(^|\/)index\.html?$/i.test(b.path) ? 0 : 1;
+    return ai - bi || a.path.split('/').length - b.path.split('/').length || a.path.localeCompare(b.path);
+  });
+  ranked.forEach(p => { const o = document.createElement('option'); o.value = p.path; o.textContent = p.path; sel.appendChild(o); });
+  if(prev && ranked.some(p => p.path === prev)) sel.value = prev;
+  $('mainRow').hidden = ranked.length < 2;
+  updateButtons();
+}
+
+function updateButtons(){
+  const ready = files.some(f => isPage(f.path)) || $('paste').value.trim() !== '';
+  $('btnConvert').disabled = !ready;
+}
+$('paste').addEventListener('input', updateButtons);
+$('optFit').addEventListener('change', () => { $('fixedBox').hidden = $('optFit').value !== 'fixed'; });
+
+/* ========================================================================
+   Finding + loading the resources a page points to
+   ======================================================================== */
+let opts = { local: true, remote: true };
+let index = new Map();      // lowercase path -> entry
+let byName = new Map();     // lowercase file name -> [entries]
+let uriCache = new Map();   // resource label -> data uri
+
+function buildIndex(){
+  index = new Map(); byName = new Map();
+  for(const f of files){
+    index.set(normPath(f.path).toLowerCase(), f);
+    const n = f.path.split('/').pop().toLowerCase();
+    if(!byName.has(n)) byName.set(n, []);
+    byName.get(n).push(f);
+  }
+}
+
+function findLocal(ref, baseDir){
+  const cleaned = cleanRef(ref);
+  const target = normPath(cleaned.startsWith('/') ? cleaned : baseDir + cleaned);
+  const hit = index.get(target.toLowerCase());
+  if(hit) return hit;
+  const name = target.split('/').pop().toLowerCase();
+  const c = byName.get(name) || [];
+  if(c.length === 1){ log('info', `matched "${ref}" to ${c[0].path} by file name`); return c[0]; }
+  return null;
+}
+
+async function loadRemote(url, wantText){
+  try{
+    const res = await fetch(url, { mode: 'cors', credentials: 'omit' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const blob = await res.blob();
+    const ct = (res.headers.get('content-type') || '').split(';')[0].trim();
+    return {
+      blob,
+      text: wantText ? await blob.text() : undefined,
+      mime: MIME[ext(url)] || ct || 'application/octet-stream',
+      base: { kind: 'remote', url: res.url || url },
+      label: url
+    };
+  }catch(err){
+    log('warn', `kept as an online link (could not download): ${url} (${err.message})`);
+    return null;
+  }
+}
+
+// returns { blob, text?, mime, base, label } or null (null = leave the reference as it is)
+async function load(ref, base, wantText){
+  const kind = classify(ref);
+  if(kind === 'skip') return null;
+
+  if(kind === 'remote'){
+    if(!opts.remote) return null;
+    return loadRemote(ref.startsWith('//') ? 'https:' + ref : ref, wantText);
+  }
+
+  // relative reference
+  if(base.kind === 'remote'){
+    if(!opts.remote) return null;
+    let abs;
+    try{ abs = new URL(ref, base.url).href; }catch(e){ return null; }
+    return loadRemote(abs, wantText);
+  }
+  if(!opts.local) return null;
+  const entry = findLocal(ref, base.dir);
+  if(!entry){
+    log('warn', `not found: "${ref}" (drop that file too, or it stays a broken link)`);
+    return null;
+  }
+  return {
+    blob: entry.file,
+    text: wantText ? await entry.file.text() : undefined,
+    mime: MIME[ext(entry.path)] || entry.file.type || 'application/octet-stream',
+    base: { kind: 'local', dir: dirname(entry.path) },
+    label: entry.path
+  };
+}
+
+function blobToDataUri(blob, mime){
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result).replace(/^data:[^,]*,/, `data:${mime};base64,`));
+    r.onerror = () => rej(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+
+// resolve a reference to a data: uri (or null to keep it as is)
+async function dataUriFor(ref, base){
+  const res = await load(ref, base, false);
+  if(!res) return null;
+  if(uriCache.has(res.label)) return uriCache.get(res.label);
+  const uri = await blobToDataUri(res.blob, res.mime);
+  uriCache.set(res.label, uri);
+  stats.files++;
+  stats.bytes += res.blob.size;
+  return uri;
+}
+
+/* ========================================================================
+   CSS: @import and url(...) get packed in
+   ======================================================================== */
+async function processUrls(css, base){
+  const re = /url\(\s*(['"]?)([^'")]*?)\1\s*\)/gi;
+  const found = [];
+  let m;
+  while((m = re.exec(css))){ found.push({ start: m.index, end: re.lastIndex, ref: m[2] }); }
+  if(!found.length) return css;
+  let out = '', last = 0;
+  for(const f of found){
+    out += css.slice(last, f.start);
+    const uri = await dataUriFor(f.ref, base);
+    out += uri ? `url("${uri}")` : css.slice(f.start, f.end);
+    last = f.end;
+  }
+  return out + css.slice(last);
+}
+
+async function processCss(css, base, depth = 0){
+  const re = /@import\s+(?:url\(\s*(['"]?)([^'")\s]+)\1\s*\)|(['"])([^'"]+)\3)([^;]*);/gi;
+  const imports = [];
+  let m;
+  while((m = re.exec(css))){ imports.push({ start: m.index, end: re.lastIndex, ref: m[2] || m[4], tail: (m[5] || '').trim() }); }
+
+  let out = '', last = 0;
+  for(const imp of imports){
+    out += await processUrls(css.slice(last, imp.start), base);
+    const original = css.slice(imp.start, imp.end);
+    let replacement = original;
+    const plainTail = !imp.tail || !/^(layer|supports)\b/i.test(imp.tail);
+    if(depth < 6 && plainTail){
+      const res = await load(imp.ref, base, true);
+      if(res){
+        let inner = await processCss(res.text.replace(/@charset\s+["'][^"']*["']\s*;/i, ''), res.base, depth + 1);
+        replacement = imp.tail ? `@media ${imp.tail}{${inner}}` : inner;
+        stats.css++;
+        log('ok', `packed in @import ${res.label}`);
+      }
+    }
+    out += replacement;
+    last = imp.end;
+  }
+  out += await processUrls(css.slice(last), base);
+  return out;
+}
+
+/* ========================================================================
+   The page itself
+   ======================================================================== */
+let stats = { css: 0, js: 0, media: 0, files: 0, bytes: 0 };
+
+// keep script text from ending its own <script> tag or opening an html comment
+const safeScript = code => code.replace(/<\/(script)/gi, '<\\/$1').replace(/<!\-\-/g, '<\\!--');
+
+async function inlinePage(text, mainPath){
+  const doc = new DOMParser().parseFromString(text, 'text/html');
+  let changed = false;
+
+  let base = { kind: 'local', dir: dirname(mainPath) };
+  const baseEl = doc.querySelector('base[href]');
+  if(baseEl){
+    const bh = baseEl.getAttribute('href');
+    const k = classify(bh);
+    if(k === 'remote') base = { kind: 'remote', url: bh.startsWith('//') ? 'https:' + bh : bh };
+    else if(k === 'local') base = { kind: 'local', dir: normPath(dirname(mainPath) + bh) + (normPath(dirname(mainPath) + bh) ? '/' : '') };
+  }
+
+  // 1) <link> tags: stylesheets become <style>, icons become data uris
+  for(const link of Array.from(doc.querySelectorAll('link[rel][href]'))){
+    const rels = link.getAttribute('rel').toLowerCase().split(/\s+/);
+    const href = link.getAttribute('href');
+    if(rels.includes('stylesheet')){
+      const res = await load(href, base, true);
+      if(!res) continue;
+      const style = doc.createElement('style');
+      const media = link.getAttribute('media');
+      if(media) style.setAttribute('media', media);
+      style.textContent = await processCss(res.text, res.base);
+      link.replaceWith(style);
+      stats.css++; stats.files++; stats.bytes += res.blob.size; changed = true;
+      log('ok', `packed in stylesheet ${res.label}`);
+    } else if(rels.some(r => r === 'icon' || r === 'apple-touch-icon' || r === 'apple-touch-icon-precomposed' || r === 'mask-icon')){
+      const uri = await dataUriFor(href, base);
+      if(uri){ link.setAttribute('href', uri); stats.media++; changed = true; log('ok', `packed in icon ${href}`); }
+    }
+  }
+
+  // 2) <style> blocks and style="" attributes
+  for(const st of Array.from(doc.querySelectorAll('style'))){
+    const before = st.textContent;
+    if(!/url\(|@import/i.test(before)) continue;
+    const after = await processCss(before, base);
+    if(after !== before){ st.textContent = after; changed = true; }
+  }
+  for(const el of Array.from(doc.querySelectorAll('[style]'))){
+    const before = el.getAttribute('style');
+    if(!/url\(/i.test(before)) continue;
+    const after = await processUrls(before, base);
+    if(after !== before){ el.setAttribute('style', after); changed = true; }
+  }
+
+  // 3) scripts
+  const deferred = [];
+  for(const s of Array.from(doc.querySelectorAll('script[src]'))){
+    const src = s.getAttribute('src');
+    const res = await load(src, base, true);
+    if(!res) continue;
+    const type = (s.getAttribute('type') || '').toLowerCase();
+    if(type === 'module' && /(^|[;\n\s])(import|export)\b[^;\n]*\bfrom\s*['"]|import\s*\(/.test(res.text)){
+      log('warn', `${res.label} is a module that imports other files; those imports can't be packed in`);
+    }
+    s.removeAttribute('src'); s.removeAttribute('integrity'); s.removeAttribute('crossorigin');
+    s.textContent = safeScript(res.text);
+    if(s.hasAttribute('defer') && type !== 'module'){ s.removeAttribute('defer'); s.removeAttribute('async'); deferred.push(s); }
+    else { s.removeAttribute('defer'); s.removeAttribute('async'); }
+    stats.js++; stats.files++; stats.bytes += res.blob.size; changed = true;
+    log('ok', `packed in script ${res.label}`);
+  }
+  // a deferred script runs after the page is parsed, so it goes to the end, in order
+  deferred.forEach(s => doc.body.appendChild(s));
+
+  // 4) images, audio, video, icons inside the page
+  const single = [
+    ['img', 'src'], ['source', 'src'], ['video', 'src'], ['video', 'poster'], ['audio', 'src'],
+    ['track', 'src'], ['embed', 'src'], ['object', 'data'], ['input[type="image"]', 'src'],
+    ['image', 'href'], ['image', 'xlink:href']
+  ];
+  for(const [sel, attr] of single){
+    for(const el of Array.from(doc.querySelectorAll(sel))){
+      const val = el.getAttribute(attr);
+      if(!val) continue;
+      const uri = await dataUriFor(val, base);
+      if(uri){ el.setAttribute(attr, uri); stats.media++; changed = true; log('ok', `packed in ${val}`); }
+    }
+  }
+  for(const el of Array.from(doc.querySelectorAll('img[srcset], source[srcset]'))){
+    const parts = el.getAttribute('srcset').split(/,\s+(?=\S)/);
+    let touched = false;
+    const rebuilt = [];
+    for(const part of parts){
+      const [u, ...desc] = part.trim().split(/\s+/);
+      const uri = u ? await dataUriFor(u, base) : null;
+      if(uri){ touched = true; rebuilt.push([uri, ...desc].join(' ')); } else rebuilt.push(part.trim());
+    }
+    if(touched){ el.setAttribute('srcset', rebuilt.join(', ')); stats.media++; changed = true; }
+  }
+  for(const fr of Array.from(doc.querySelectorAll('iframe[src]'))){
+    const v = fr.getAttribute('src');
+    if(classify(v) === 'local' && opts.local && findLocal(v, base.kind === 'local' ? base.dir : '')){
+      log('warn', `iframe ${v} is a separate page; convert it on its own (it is not packed in)`);
+    }
+  }
+
+  const dt = /^\s*(?:<!--[\s\S]*?-->\s*)*(<!doctype[^>]*>)/i.exec(text);
+  const html = changed ? (dt ? dt[1] + '\n' : '') + doc.documentElement.outerHTML : text;
+  return { html, changed, title: (doc.title || '').trim() };
+}
+
+/* ========================================================================
+   Building the svg
+   ======================================================================== */
+// characters XML can never contain (even escaped), and lone surrogates
+const XML_BAD = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g;
+function xmlSafe(s){
+  const before = s.length;
+  s = s.replace(XML_BAD, '').replace(/([\uD800-\uDBFF][\uDC00-\uDFFF])|[\uD800-\uDFFF]/g, (m, pair) => pair ? m : '');
+  if(s.length !== before) log('warn', `removed ${before - s.length} character(s) that svg/xml cannot hold`);
+  return s;
+}
+// attribute values in xml lose their line breaks and tabs, so those are written out as codes
+const attrEscape = s => s
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  .replace(/\t/g, '&#9;').replace(/\n/g, '&#10;').replace(/\r/g, '&#13;');
+const textEscape = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+function buildSvg(html, { title, fixed, w, h }){
+  const size = fixed ? `width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"` : 'width="100%" height="100%"';
+  const box  = fixed ? `x="0" y="0" width="${w}" height="${h}"` : 'x="0" y="0" width="100%" height="100%"';
+  const label = title || 'page';
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!-- made with html to svg. open this file directly in a browser. -->
+<svg xmlns="http://www.w3.org/2000/svg" ${size}>
+  <title>${textEscape(xmlSafe(label))}</title>
+  <foreignObject ${box}>
+    <iframe xmlns="http://www.w3.org/1999/xhtml" title="${attrEscape(xmlSafe(label))}" style="display:block;width:100%;height:100%;border:0;margin:0;padding:0;background:transparent" allow="fullscreen; autoplay; gamepad; clipboard-read; clipboard-write; web-share; accelerometer; gyroscope" allowfullscreen="true" srcdoc="${attrEscape(xmlSafe(html))}"></iframe>
+  </foreignObject>
+</svg>
+`;
+}
+
+/* ========================================================================
+   Convert button
+   ======================================================================== */
+function renderReport(){
+  const ul = $('report');
+  ul.innerHTML = '';
+  report.forEach(r => {
+    const li = document.createElement('li');
+    li.className = r.kind;
+    li.textContent = r.msg;
+    ul.appendChild(li);
+  });
+}
+
+async function convert(){
+  report = [];
+  stats = { css: 0, js: 0, media: 0, files: 0, bytes: 0 };
+  uriCache = new Map();
+  opts = { local: $('optLocal').checked, remote: $('optRemote').checked };
+  $('btnConvert').disabled = true;
+  $('summary').hidden = true;
+  $('btnDownload').disabled = true;
+  $('btnPreview').disabled = true;
+  $('previewCard').hidden = true;
+  $('report').innerHTML = '<li class="info">working…</li>';
+
+  try{
+    let text, mainPath;
+    const pasted = $('paste').value;
+    if(pasted.trim()){
+      text = pasted; mainPath = 'pasted.html'; lastName = 'page';
+    } else {
+      const main = files.find(f => f.path === $('mainSel').value) || files.find(f => isPage(f.path));
+      if(!main) throw new Error('add an html file first');
+      text = decodeHtml(await main.file.arrayBuffer());
+      mainPath = main.path;
+      lastName = main.path.split('/').pop().replace(/\.html?$/i, '') || 'page';
+    }
+    buildIndex();
+
+    const res = await inlinePage(text, mainPath);
+    if(!/^\s*(?:<!--[\s\S]*?-->\s*)*<!doctype/i.test(text)){
+      log('warn', 'this page has no <!DOCTYPE html> at the top. browsers open such pages in "quirks mode", but inside an svg they always use standards mode, so a few layouts can shift slightly. adding <!DOCTYPE html> as the first line of your page makes both identical.');
+    }
+    if(!res.changed) log('info', 'the page was kept exactly as written' + (files.length > 1 || opts.remote ? ' (nothing needed packing in)' : ''));
+
+    const fixed = $('optFit').value === 'fixed';
+    const w = Math.max(100, parseInt($('optW').value, 10) || 1280);
+    const h = Math.max(100, parseInt($('optH').value, 10) || 720);
+    lastSvg = buildSvg(res.html, { title: res.title || lastName, fixed, w, h });
+    window.lastSvg = lastSvg;      // handy for testing
+
+    const parts = [];
+    if(stats.css) parts.push(stats.css + ' stylesheet' + (stats.css === 1 ? '' : 's'));
+    if(stats.js) parts.push(stats.js + ' script' + (stats.js === 1 ? '' : 's'));
+    if(stats.media) parts.push(stats.media + ' image/media file' + (stats.media === 1 ? '' : 's'));
+    const inSize = new Blob([text]).size, outSize = new Blob([lastSvg]).size;
+    $('summary').hidden = false;
+    $('summary').textContent = `done: ${kb(inSize)} html became a ${kb(outSize)} svg` + (parts.length ? ` (packed in ${parts.join(', ')})` : '');
+    if(outSize > 25 * 1048576) log('warn', 'the svg is very large; some browsers may be slow to open it');
+    $('btnDownload').disabled = false;
+    $('btnPreview').disabled = false;
+    if(!report.length) log('ok', 'converted');
+  }catch(err){
+    log('bad', err.message || String(err));
+    lastSvg = '';
+  }
+  renderReport();
+  updateButtons();
+}
+
+$('btnConvert').addEventListener('click', convert);
+
+$('btnDownload').addEventListener('click', () => {
+  if(!lastSvg) return;
+  const url = URL.createObjectURL(new Blob([lastSvg], { type: 'image/svg+xml;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = lastName + '.svg';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+});
+
+$('btnPreview').addEventListener('click', () => {
+  if(!lastSvg) return;
+  if(previewUrl) URL.revokeObjectURL(previewUrl);
+  previewUrl = URL.createObjectURL(new Blob([lastSvg], { type: 'image/svg+xml;charset=utf-8' }));
+  $('preview').src = previewUrl;
+  $('previewCard').hidden = false;
+  $('previewCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+
+updateButtons();
+})();
+</script>
+</body>
+</html>
