@@ -6,6 +6,10 @@
 
 <p align="center">Wrap any web page in a single SVG file. Runs in your browser, nothing uploaded.</p>
 
+<p align="center">
+  <img src="assets/social-preview.png" alt="FoilPack: wrap any web page in a single SVG file" width="720">
+</p>
+
 FoilPack turns an HTML page into one self-contained `.svg` file that still works: same layout, same code, same behavior. Drop in your page along with the CSS, scripts, images, and fonts it uses, and they all get packed inside.
 
 ## Features
@@ -28,7 +32,47 @@ FoilPack turns an HTML page into one self-contained `.svg` file that still works
 
 ## Running it
 
-FoilPack is a single static HTML page with no build step and no dependencies. Open it in any modern browser, or host it anywhere static files are served, such as GitHub Pages.
+FoilPack is a static site with no build step and no dependencies. Open `index.html` in any modern browser, or host the folder anywhere static files are served, such as GitHub Pages.
+
+## Project structure
+
+```
+foilpack/
+├── index.html                  # page markup
+├── style.css                   # all styling
+├── app.js                      # the converter: reads files, inlines assets, builds the SVG
+├── logo.svg                    # logo
+├── assets/
+│   ├── social-preview.png      # 1280x640 link preview (also set it in repo Settings)
+│   ├── social-preview.svg      # editable source for the preview
+│   ├── icon-192.png, icon-512.png, apple-touch-icon.png, favicon.ico
+│   └── site.webmanifest
+├── .github/
+│   ├── workflows/pages.yml     # deploys to GitHub Pages on push to main
+│   ├── ISSUE_TEMPLATE/         # bug report and feature request forms
+│   └── pull_request_template.md
+├── package.json                # npm start (local server), npm run check
+├── LICENSE
+└── .gitignore
+```
+
+## Development
+
+No install needed. To serve it locally:
+
+```
+npm start
+```
+
+Then open http://localhost:3000. `npm run check` syntax-checks `app.js`.
+
+## Deploying to GitHub Pages
+
+1. Push the repo to GitHub with the default branch named `main`.
+2. In **Settings → Pages**, set **Source** to **GitHub Actions**.
+3. Push a commit. The workflow in `.github/workflows/pages.yml` checks the script and publishes the site.
+
+To get the link preview when you share the repo, upload `assets/social-preview.png` under **Settings → General → Social preview**.
 
 ## How it works
 
@@ -44,4 +88,4 @@ A web page can't become vector shapes and stay interactive, so the SVG hosts you
 
 ## License
 
-Add your license here.
+[MIT](LICENSE)
