@@ -17,6 +17,7 @@ FoilPack turns an HTML page into one self-contained `.svg` file that still works
 - **One file out.** Your page, its stylesheets, scripts, images, icons, fonts, audio, and video end up in a single `.svg`.
 - **Private by design.** Everything runs locally in your browser. Nothing is uploaded anywhere.
 - **Drag and drop.** Drop individual files or a whole folder, or paste HTML straight in.
+- **Batch convert.** Drop a folder with several pages and FoilPack asks if you want to convert them all at once. Download each SVG on its own, or everything as one `.zip`.
 - **Online files too.** Optionally downloads and packs in Google Fonts, CDN scripts, and online images.
 - **Flexible sizing.** Fill the whole window, or set a fixed width and height.
 - **Built-in preview.** Check the result before downloading.
@@ -30,6 +31,15 @@ FoilPack turns an HTML page into one self-contained `.svg` file that still works
    - *Size*: fill the window (recommended) or a fixed size.
 3. **Convert**, then **download the `.svg`** or hit **preview**.
 
+### Batch convert
+
+If the files you add contain two or more HTML pages, FoilPack asks whether to convert them all.
+
+- Choose **yes, batch convert** and untick any pages you want to skip. The button changes to "convert N pages".
+- Each page keeps its own CSS, scripts, and images from the folder, so pages in different subfolders still find their files.
+- When it finishes, every page gets a row with its own **download** and **preview** buttons. Use **download all (.zip)** to get every SVG at once, with your folder structure kept.
+- Choose **no, just one** to go back to picking a single main page. Pasted HTML always converts as a single page.
+
 ## Running it
 
 FoilPack is a static site with no build step and no dependencies. Open `index.html` in any modern browser, or host the folder anywhere static files are served, such as GitHub Pages.
@@ -40,7 +50,7 @@ FoilPack is a static site with no build step and no dependencies. Open `index.ht
 foilpack/
 ├── index.html                  # page markup
 ├── style.css                   # all styling
-├── app.js                      # the converter: reads files, inlines assets, builds the SVG
+├── app.js                      # the converter: reads files, inlines assets, builds the SVG, batch + zip
 ├── logo.svg                    # logo
 ├── assets/
 │   ├── social-preview.png      # 1280x640 link preview (also set it in repo Settings)
